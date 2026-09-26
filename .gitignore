@@ -1,0 +1,26 @@
+# Secrets
+.env
+!.env.example
+
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+backend/staticfiles/
+
+# Flutter / Dart
+app/.dart_tool/
+app/build/
+app/.flutter-plugins-dependencies
+app/*.iml
+app/.idea/
+app/coverage/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store

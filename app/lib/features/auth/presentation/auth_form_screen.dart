@@ -10,6 +10,7 @@ import '../../../core/theme/mw_tokens.dart';
 import '../../../core/utils/device_timezone.dart';
 import '../../../core/widgets/mw_button.dart';
 import '../../../core/widgets/mw_card.dart';
+import '../../dev/server_settings.dart';
 import '../application/session_controller.dart';
 
 enum AuthMode { signIn, register }
@@ -180,12 +181,19 @@ class _AuthFormScreenState extends ConsumerState<AuthFormScreen> {
                         isLoading: _submitting,
                         onPressed: _submit,
                       ),
+                      if (!_isRegister)
+                        MwButton(
+                          label: 'Forgot password?',
+                          variant: MwButtonVariant.text,
+                          onPressed: () => context.push(Routes.forgotPassword),
+                        ),
                       const SizedBox(height: MwSpace.sm),
                       MwButton(
                         label: _isRegister ? 'I already have an account' : 'Create an account instead',
                         variant: MwButtonVariant.text,
                         onPressed: () => context.pushReplacement(_isRegister ? Routes.signIn : Routes.register),
                       ),
+                      const ServerHint(),
                     ],
                   ),
                 ),

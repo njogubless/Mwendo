@@ -83,3 +83,16 @@ class Preferences(TimeStampedModel):
 
     class Meta:
         verbose_name_plural = "preferences"
+
+
+class PasswordResetCode(TimeStampedModel):
+    """A short-lived 6-digit code emailed for password reset (mobile-friendly, no deep links needed).
+
+    Only a hash is stored. Codes expire after 15 minutes and lock after 5 wrong attempts.
+    """
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reset_codes")
+    code_hash = models.CharField(max_length=128)
+    expires_at = models.DateTimeField()
+    attempts = models.PositiveSmallIntegerField(default=0)
+    used_at = models.DateTimeField(null=True, blank=True)

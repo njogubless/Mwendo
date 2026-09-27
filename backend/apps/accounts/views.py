@@ -1,4 +1,6 @@
+from django.db import transaction
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
@@ -11,14 +13,18 @@ from apps.core.exceptions import DomainError
 
 from .models import Preferences
 from .serializers import (
+    AccountDeleteSerializer,
     AuthTokensSerializer,
     LoginSerializer,
     LogoutSerializer,
+    PasswordChangeSerializer,
+    PasswordResetConfirmSerializer,
+    PasswordResetRequestSerializer,
     PreferencesSerializer,
     RegisterSerializer,
     UserSerializer,
 )
-from .services import register_user
+from .services import confirm_password_reset, register_user, request_password_reset
 
 
 class AuthThrottleMixin:
@@ -76,10 +82,54 @@ class LogoutView(APIView):
 
 class MeView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
-    http_method_names = ["get", "patch"]
+    http_method_names = ["get", "patch", "delete"]
 
     def get_object(self):
         return self.request.user
+
+    @extend_schema(request=AccountDeleteSerializer, responses={204: None})
+    def delete(self, request):
+        """Permanently deletes the account and all its data."""
+        serializer = AccountDeleteSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        request.user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PasswordResetRequestView(AuthThrottleMixin, APIView):
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+
+    @extend_schema(request=PasswordResetRequestSerializer, responses={202: None})
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        request_password_reset(serializer.validated_data["email"])
+        return Response(status=status.HTTP_202_ACCEPTED)
+
+
+@method_decorator(transaction.non_atomic_requests, name="dispatch")
+class PasswordResetConfirmView(AuthThrottleMixin, APIView):
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+
+    @extend_schema(request=PasswordResetConfirmSerializer, responses={200: AuthTokensSerializer})
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        user = confirm_password_reset(data["email"], data["code"], data["new_password"])
+        return Response(AuthTokensSerializer.for_user(user))
+
+
+class PasswordChangeView(APIView):
+    @extend_schema(request=PasswordChangeSerializer, responses={204: None})
+    def post(self, request):
+        serializer = PasswordChangeSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        request.user.set_password(serializer.validated_data["new_password"])
+        request.user.save(update_fields=["password", "updated_at"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class PreferencesView(generics.RetrieveUpdateAPIView):

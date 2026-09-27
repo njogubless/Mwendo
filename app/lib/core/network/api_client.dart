@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../config/env.dart';
+import '../config/server_config.dart';
 import '../storage/token_storage.dart';
 import 'auth_interceptor.dart';
 import 'session_events.dart';
@@ -53,7 +53,7 @@ Dio buildApiClient({
 
 final apiClientProvider = Provider<Dio>((ref) {
   return buildApiClient(
-    baseUrl: Env.apiBaseUrl,
+    baseUrl: ref.watch(apiBaseUrlProvider),
     storage: ref.watch(tokenStorageProvider),
     onSessionExpired: ref.watch(sessionEventsProvider).notifyExpired,
   );

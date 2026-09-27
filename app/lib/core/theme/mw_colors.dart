@@ -94,15 +94,15 @@ class MwColors extends ThemeExtension<MwColors> {
   final Color shadow;
 
   static const light = MwColors(
-    canvas: Color(0xFFF7F4EE),
-    sunken: Color(0xFFEFEBE1),
+    canvas: Color(0xFFF3EFE7),
+    sunken: Color(0xFFE9E3D6),
     surface: Color(0xFFFFFFFF),
     surfaceWarm: Color(0xFFFAF8F4),
-    border: Color(0xFFE8E3D7),
-    hairline: Color(0x0F111315),
+    border: Color(0xFFDDD5C5),
+    hairline: Color(0x17111315),
     textPrimary: Color(0xFF111315),
     textSecondary: Color(0xFF4A4D52),
-    textTertiary: Color(0xFF6E7178),
+    textTertiary: Color(0xFF676A71),
     action: Color(0xFF245C4A),
     actionPressed: Color(0xFF1A4436),
     onAction: Color(0xFFFFFFFF),

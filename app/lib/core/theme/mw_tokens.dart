@@ -41,12 +41,12 @@ abstract final class MwBreakpoints {
 /// Warm, diffuse shadows. Depth comes first from tonal layering; use these sparingly.
 abstract final class MwShadows {
   static List<BoxShadow> resting(Color shadow) => [
-    BoxShadow(color: shadow.withValues(alpha: 0.04), offset: const Offset(0, 2), blurRadius: 8, spreadRadius: -2),
-    BoxShadow(color: shadow.withValues(alpha: 0.02), offset: const Offset(0, 1), blurRadius: 3),
+    BoxShadow(color: shadow.withValues(alpha: 0.07), offset: const Offset(0, 3), blurRadius: 10, spreadRadius: -3),
+    BoxShadow(color: shadow.withValues(alpha: 0.04), offset: const Offset(0, 1), blurRadius: 2),
   ];
 
   static List<BoxShadow> floating(Color shadow) => [
-    BoxShadow(color: shadow.withValues(alpha: 0.08), offset: const Offset(0, 12), blurRadius: 32, spreadRadius: -4),
+    BoxShadow(color: shadow.withValues(alpha: 0.12), offset: const Offset(0, 12), blurRadius: 32, spreadRadius: -4),
     BoxShadow(color: shadow.withValues(alpha: 0.03), offset: const Offset(0, 4), blurRadius: 12, spreadRadius: -2),
   ];
 }

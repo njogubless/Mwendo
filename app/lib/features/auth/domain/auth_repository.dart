@@ -16,4 +16,10 @@ abstract interface class AuthRepository {
 
   /// Always clears local credentials, even if the server call fails.
   Future<void> signOut();
+
+  /// Emails a 6-digit code. Succeeds whether or not the email has an account.
+  Future<void> requestPasswordReset(String email);
+
+  /// Sets a new password with the emailed code and signs in.
+  Future<User> confirmPasswordReset({required String email, required String code, required String newPassword});
 }

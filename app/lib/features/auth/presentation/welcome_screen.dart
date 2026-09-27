@@ -7,6 +7,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/mw_tokens.dart';
 import '../../../core/widgets/brand_mark.dart';
 import '../../../core/widgets/mw_button.dart';
+import '../../dev/server_settings.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -47,6 +48,7 @@ class WelcomeScreen extends StatelessWidget {
                       variant: MwButtonVariant.text,
                       onPressed: () => context.push(Routes.devGallery),
                     ),
+                  const ServerHint(),
                 ],
               ),
             ),

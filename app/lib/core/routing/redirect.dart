@@ -10,6 +10,10 @@ String? resolveRedirect({required SessionState session, required String location
   return switch (session) {
     SessionRestoring() || SessionUnavailable() => location == Routes.splash ? null : Routes.splash,
     SignedOut() => Routes.public.contains(location) ? null : Routes.welcome,
-    SignedIn() => location == Routes.splash || Routes.public.contains(location) ? Routes.today : null,
+    SignedIn(:final user) when !user.isOnboarded => location == Routes.onboarding ? null : Routes.onboarding,
+    SignedIn() =>
+      location == Routes.splash || location == Routes.onboarding || Routes.public.contains(location)
+          ? Routes.today
+          : null,
   };
 }

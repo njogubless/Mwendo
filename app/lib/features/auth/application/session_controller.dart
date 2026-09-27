@@ -43,6 +43,17 @@ class SessionController extends Notifier<SessionState> {
 
   @override
   SessionState build() {
+    // //TEMP : skip auth while sscoping the UI. Don't commit
+    // return const SignedIn(
+    //   User(
+    //     id: 'dev',
+    //     email: 'dev@mwendo.local',
+    //     displayName: 'Dev',
+    //     timezone: 'Africa/Nairobi',
+    //     dayStartTime: Duration(hours: 4),
+    //     isOnboarded: true,
+    //   ),
+    // );
     _expiredSub = ref.watch(sessionEventsProvider).expired.listen((_) {
       state = const SignedOut(reason: 'Your session ended. Please sign in again.');
     });
@@ -77,6 +88,13 @@ class SessionController extends Notifier<SessionState> {
     final user = await ref
         .read(authRepositoryProvider)
         .register(email: email, password: password, displayName: displayName, timezone: timezone);
+    state = SignedIn(user);
+  }
+
+  Future<void> resetPassword({required String email, required String code, required String newPassword}) async {
+    final user = await ref
+        .read(authRepositoryProvider)
+        .confirmPasswordReset(email: email, code: code, newPassword: newPassword);
     state = SignedIn(user);
   }
 

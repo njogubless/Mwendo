@@ -31,6 +31,10 @@ INSTALLED_APPS = [
     # Mwendo
     "apps.core",
     "apps.accounts",
+    "apps.goals",
+    "apps.routines",
+    "apps.tracking",
+    "apps.insights",
 ]
 
 MIDDLEWARE = [
@@ -107,6 +111,7 @@ REST_FRAMEWORK = {
         "auth": env("THROTTLE_AUTH", default="10/min"),
     },
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
+    "COERCE_DECIMAL_TO_STRING": False,
 }
 
 SIMPLE_JWT = {
@@ -127,7 +132,17 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "SCHEMA_PATH_PREFIX": r"/api/v1",
     "COMPONENT_SPLIT_REQUEST": True,
+    "ENUM_NAME_OVERRIDES": {
+        "DayModeEnum": "apps.tracking.models.DailyPlan.Mode",
+        "AdaptationModeEnum": ["time_budget", "minimum"],
+        "CompletionStatusEnum": "apps.tracking.models.ActivityCompletion.Status",
+        "RoutineStatusEnum": "apps.routines.models.Routine.Status",
+        "GoalStatusEnum": "apps.goals.models.Goal.Status",
+        "TimingStatusEnum": ["empty", "done", "on_track", "shifted"],
+    },
 }
+
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="Mwendo <hello@mwendo.app>")
 
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 CORS_ALLOWED_ORIGIN_REGEXES = env.list("CORS_ALLOWED_ORIGIN_REGEXES", default=[])

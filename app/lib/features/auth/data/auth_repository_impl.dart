@@ -63,6 +63,19 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<void> requestPasswordReset(String email) async {
+    try {
+      await _client.post<void>('/auth/password/reset/', data: {'email': email}, options: _public);
+    } catch (e) {
+      throw mapToFailure(e);
+    }
+  }
+
+  @override
+  Future<User> confirmPasswordReset({required String email, required String code, required String newPassword}) =>
+      _authenticate('/auth/password/reset/confirm/', {'email': email, 'code': code, 'new_password': newPassword});
+
+  @override
   Future<void> signOut() async {
     final tokens = await _storage.read();
     try {

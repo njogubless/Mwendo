@@ -30,7 +30,7 @@ One place decides (`app/lib/core/config/env.dart`):
 |---|---|
 | `--dart-define=API_BASE_URL=…` given | That URL, always (CI, staging, production builds) |
 | Release (`flutter build … --release`) | `Env.productionApiUrl`, the deployed API |
-| Debug (`flutter run`) | The server picked in the app's **developer Server screen**, remembered on the device. Default is `localhost:8001` |
+| Debug (`flutter run`) | The server picked in the app's **developer Server screen**, remembered on the device. Default is `localhost:8001` | subject to change depending on client server being rendered
 
 On a **phone**, tap **Server: …** at the bottom of the Welcome screen once, then choose:
 - **Wi-Fi:** type your computer's address, e.g. `192.168.31.222:8001` (`hostname -I`), tap **Test**, then **Use this server**.
@@ -43,7 +43,6 @@ Turn them on from the card on Today or in Profile › Reminders. On Android, all
 when asked, so they arrive on the minute; otherwise Android may deliver a few minutes late. Reminders
 are planned on the phone from today's plan and your routines, and update whenever those change.
 
-- API docs: http://localhost:8001/api/v1/docs/
 - Design-system gallery (debug builds): the app's welcome screen links to `/dev/gallery`
 
 See `docs/` for the product, design, architecture and plan.

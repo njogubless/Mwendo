@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "70151869377",
+    "project_id": "mwendo-13689",
+    "storage_bucket": "mwendo-13689.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:70151869377:android:be2a3b1fa80ab83391d540",
+        "android_client_info": {
+          "package_name": "app.mwendo.mwendo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "70151869377-erslerpja34a6kkqi5069rhr307ejgkt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChEkzIQmPiwnt0jOotA2SlORUjxCv2274"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "70151869377-erslerpja34a6kkqi5069rhr307ejgkt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -25,3 +25,8 @@ app/coverage/
 .idea/
 .DS_Store
 docs/
+
+# Firebase CLI
+firebase/.firebase/
+firebase-debug.log
+firestore-debug.log

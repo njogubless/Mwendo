@@ -11,7 +11,8 @@ import '../../../core/widgets/mw_button.dart';
 import '../application/session_controller.dart';
 import '../data/auth_repository_impl.dart';
 
-/// Two steps: email → 6-digit code + new password. Signs in on success.
+/// Django: two steps, email → 6-digit code + new password, then signs in (D-019).
+/// Firebase: email → a reset link opens Firebase's page; the user then signs in (D-031).
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -57,6 +58,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final c = context.mwColors;
+    final byLink = ref.watch(passwordResetMethodProvider) == PasswordResetMethod.link;
     final general = switch (_failure) {
       ValidationFailure(:final fieldErrors) when fieldErrors.isNotEmpty => null,
       final f? => f.userMessage,
@@ -81,12 +83,15 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 children: [
                   Text(_codeSent ? 'Check your email' : 'Reset your password', style: context.text.headlineMedium),
                   const SizedBox(height: MwSpace.sm),
-                  Text(
-                    _codeSent
-                        ? 'If ${_email.text.trim()} has an account, a 6-digit code is on its way. It works for 15 minutes.'
-                        : "Enter your email and we'll send you a code.",
-                    style: context.text.bodyMedium?.copyWith(color: c.textSecondary),
-                  ),
+                  Text(switch ((_codeSent, byLink)) {
+                    (true, true) =>
+                      'If ${_email.text.trim()} has an account, a reset link is on its way. Open it to choose a '
+                          'new password, then sign in here.',
+                    (true, false) =>
+                      'If ${_email.text.trim()} has an account, a 6-digit code is on its way. It works for 15 minutes.',
+                    (false, true) => "Enter your email and we'll send you a link to reset your password.",
+                    (false, false) => "Enter your email and we'll send you a code.",
+                  }, style: context.text.bodyMedium?.copyWith(color: c.textSecondary)),
                   const SizedBox(height: MwSpace.lg),
                   TextField(
                     controller: _email,
@@ -95,7 +100,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     autofillHints: const [AutofillHints.email],
                     decoration: InputDecoration(labelText: 'Email', errorText: _field('email')),
                   ),
-                  if (_codeSent) ...[
+                  if (_codeSent && !byLink) ...[
                     const SizedBox(height: MwSpace.md),
                     TextField(
                       controller: _code,
@@ -123,14 +128,24 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   const SizedBox(height: MwSpace.lg),
                   if (!_codeSent)
                     MwButton(
-                      label: 'Send code',
+                      label: byLink ? 'Send link' : 'Send code',
                       isLoading: _busy,
                       onPressed: () => _guard(() async {
                         await ref.read(authRepositoryProvider).requestPasswordReset(_email.text.trim());
                         setState(() => _codeSent = true);
                       }),
                     )
-                  else ...[
+                  else if (byLink) ...[
+                    MwButton(label: 'Back to sign in', onPressed: () => context.go(Routes.signIn)),
+                    MwButton(
+                      label: 'Send the link again',
+                      variant: MwButtonVariant.text,
+                      onPressed: _busy
+                          ? null
+                          : () =>
+                                _guard(() => ref.read(authRepositoryProvider).requestPasswordReset(_email.text.trim())),
+                    ),
+                  ] else ...[
                     MwButton(
                       label: 'Set new password',
                       isLoading: _busy,

@@ -3,12 +3,15 @@ import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/backend.dart';
+import '../../../core/firebase/firestore_scope.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/failure_mapper.dart';
 import '../../../core/utils/json.dart';
 import '../../routines/domain/routine.dart';
 import '../domain/day.dart';
 import '../domain/day_repository.dart';
+import 'firestore_day_repository.dart';
 
 AdjustmentRef? _adjustment(Object? j) {
   if (j == null) return null;
@@ -211,4 +214,9 @@ class DayRepositoryImpl implements DayRepository {
   Future<Day> revert(String adjustmentId) => _day(() => _dio.post<Json>('/adjustments/$adjustmentId/revert/'));
 }
 
-final dayRepositoryProvider = Provider<DayRepository>((ref) => DayRepositoryImpl(ref.watch(apiClientProvider)));
+final dayRepositoryProvider = Provider<DayRepository>(
+  (ref) => switch (ref.watch(backendProvider)) {
+    Backend.django => DayRepositoryImpl(ref.watch(apiClientProvider)),
+    Backend.firebase => FirestoreDayRepository(ref.watch(firestoreScopeProvider)),
+  },
+);

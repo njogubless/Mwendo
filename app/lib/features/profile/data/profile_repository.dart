@@ -1,15 +1,21 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/backend.dart';
+import '../../../core/firebase/firestore_scope.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/failure_mapper.dart';
 import '../../../core/utils/json.dart';
 import '../../auth/data/user_dto.dart';
 import '../../auth/domain/user.dart';
+import '../domain/profile_repository.dart';
+import 'firestore_profile_repository.dart';
 
-/// Account settings and onboarding answers for the signed-in user.
-class ProfileRepository {
-  ProfileRepository(this._dio);
+export '../domain/profile_repository.dart';
+
+/// Account settings over the Django REST API.
+class HttpProfileRepository implements ProfileRepository {
+  HttpProfileRepository(this._dio);
 
   final Dio _dio;
 
@@ -21,6 +27,7 @@ class ProfileRepository {
     }
   }
 
+  @override
   Future<User> update({String? displayName, String? timezone, int? dayStartMinutes}) => _run(() async {
     final r = await _dio.patch<Json>(
       '/me/',
@@ -33,6 +40,7 @@ class ProfileRepository {
     return UserDto.fromJson(r.data!).toDomain();
   });
 
+  @override
   Future<void> savePreferences({required List<String> focusAreas, required String structure, int? wakeMinutes}) => _run(
     () => _dio.put<Json>(
       '/me/preferences/',
@@ -45,13 +53,21 @@ class ProfileRepository {
     ),
   );
 
+  @override
   Future<User> completeOnboarding() =>
       _run(() async => UserDto.fromJson((await _dio.post<Json>('/me/onboarding/complete/')).data!).toDomain());
 
+  @override
   Future<void> changePassword({required String current, required String next}) =>
       _run(() => _dio.post<void>('/me/password/', data: {'current_password': current, 'new_password': next}));
 
+  @override
   Future<void> deleteAccount(String password) => _run(() => _dio.delete<void>('/me/', data: {'password': password}));
 }
 
-final profileRepositoryProvider = Provider((ref) => ProfileRepository(ref.watch(apiClientProvider)));
+final profileRepositoryProvider = Provider<ProfileRepository>(
+  (ref) => switch (ref.watch(backendProvider)) {
+    Backend.django => HttpProfileRepository(ref.watch(apiClientProvider)),
+    Backend.firebase => FirestoreProfileRepository(ref.watch(firestoreScopeProvider)),
+  },
+);

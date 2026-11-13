@@ -1,10 +1,16 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/backend.dart';
+import '../../../core/firebase/firestore_scope.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/failure_mapper.dart';
 import '../../../core/utils/json.dart';
 import '../domain/goal.dart';
+import '../domain/goals_repository.dart';
+import 'firestore_goals_repository.dart';
+
+export '../domain/goals_repository.dart';
 
 Goal goalFromJson(Json j) {
   final progress = j['progress'] as Json;
@@ -63,8 +69,9 @@ Json goalDraftToJson(GoalDraft d) => {
   'target_date': d.targetDate == null ? null : isoDate(d.targetDate!),
 };
 
-class GoalsRepository {
-  GoalsRepository(this._dio);
+/// Goals over the Django REST API.
+class HttpGoalsRepository implements GoalsRepository {
+  HttpGoalsRepository(this._dio);
 
   final Dio _dio;
 
@@ -76,24 +83,31 @@ class GoalsRepository {
     }
   }
 
+  @override
   Future<List<Goal>> list() => _run(() async {
     final r = await _dio.get<List<dynamic>>('/goals/');
     return r.data!.cast<Json>().map(goalFromJson).toList();
   });
 
+  @override
   Future<Goal> get(String id) => _run(() async => goalFromJson((await _dio.get<Json>('/goals/$id/')).data!));
 
+  @override
   Future<Goal> create(GoalDraft draft) =>
       _run(() async => goalFromJson((await _dio.post<Json>('/goals/', data: goalDraftToJson(draft))).data!));
 
+  @override
   Future<Goal> update(String id, GoalDraft draft) =>
       _run(() async => goalFromJson((await _dio.patch<Json>('/goals/$id/', data: goalDraftToJson(draft))).data!));
 
+  @override
   Future<Goal> setStatus(String id, GoalStatus status) =>
       _run(() async => goalFromJson((await _dio.patch<Json>('/goals/$id/', data: {'status': status.name})).data!));
 
+  @override
   Future<void> archive(String id) => _run(() => _dio.delete<void>('/goals/$id/'));
 
+  @override
   Future<Goal> logProgress(String id, {required double value, required DateTime on, String note = ''}) => _run(
     () async => goalFromJson(
       (await _dio.post<Json>(
@@ -103,9 +117,11 @@ class GoalsRepository {
     ),
   );
 
+  @override
   Future<void> deleteMeasurement(String goalId, String measurementId) =>
       _run(() => _dio.delete<void>('/goals/$goalId/measurements/$measurementId/'));
 
+  @override
   Future<List<HabitOption>> habits() => _run(() async {
     final r = await _dio.get<List<dynamic>>('/habits/');
     return r.data!
@@ -114,6 +130,7 @@ class GoalsRepository {
         .toList();
   });
 
+  @override
   Future<void> createHabit({required String title, String? goalId, bool perWeek = false, int times = 1}) => _run(
     () => _dio.post<Json>(
       '/habits/',
@@ -121,7 +138,13 @@ class GoalsRepository {
     ),
   );
 
+  @override
   Future<void> deleteHabit(String id) => _run(() => _dio.delete<void>('/habits/$id/'));
 }
 
-final goalsRepositoryProvider = Provider<GoalsRepository>((ref) => GoalsRepository(ref.watch(apiClientProvider)));
+final goalsRepositoryProvider = Provider<GoalsRepository>(
+  (ref) => switch (ref.watch(backendProvider)) {
+    Backend.django => HttpGoalsRepository(ref.watch(apiClientProvider)),
+    Backend.firebase => FirestoreGoalsRepository(ref.watch(firestoreScopeProvider)),
+  },
+);

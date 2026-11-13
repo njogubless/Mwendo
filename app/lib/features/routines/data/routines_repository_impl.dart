@@ -1,11 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/backend.dart';
+import '../../../core/firebase/firestore_scope.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/failure_mapper.dart';
 import '../../../core/utils/json.dart';
 import '../domain/routine.dart';
 import '../domain/routines_repository.dart';
+import 'firestore_routines_repository.dart';
 
 RoutineStep stepFromJson(Json j) => RoutineStep(
   id: j['id'] as String?,
@@ -166,5 +169,8 @@ class RoutinesRepositoryImpl implements RoutinesRepository {
 }
 
 final routinesRepositoryProvider = Provider<RoutinesRepository>(
-  (ref) => RoutinesRepositoryImpl(ref.watch(apiClientProvider)),
+  (ref) => switch (ref.watch(backendProvider)) {
+    Backend.django => RoutinesRepositoryImpl(ref.watch(apiClientProvider)),
+    Backend.firebase => FirestoreRoutinesRepository(ref.watch(firestoreScopeProvider)),
+  },
 );

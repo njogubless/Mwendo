@@ -1,12 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/backend.dart';
+import '../../../core/firebase/firestore_scope.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/auth_interceptor.dart';
 import '../../../core/network/failure_mapper.dart';
 import '../../../core/storage/token_storage.dart';
 import '../domain/auth_repository.dart';
 import '../domain/user.dart';
+import 'firebase_auth_repository.dart';
 import 'user_dto.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -89,5 +92,21 @@ class AuthRepositoryImpl implements AuthRepository {
 }
 
 final authRepositoryProvider = Provider<AuthRepository>(
-  (ref) => AuthRepositoryImpl(client: ref.watch(apiClientProvider), storage: ref.watch(tokenStorageProvider)),
+  (ref) => switch (ref.watch(backendProvider)) {
+    Backend.django => AuthRepositoryImpl(
+      client: ref.watch(apiClientProvider),
+      storage: ref.watch(tokenStorageProvider),
+    ),
+    Backend.firebase => FirebaseAuthRepository(ref.watch(firestoreScopeProvider)),
+  },
+);
+
+/// How "Forgot password" works: Django emails a 6-digit code (D-019); Firebase emails a reset link.
+enum PasswordResetMethod { code, link }
+
+final passwordResetMethodProvider = Provider<PasswordResetMethod>(
+  (ref) => switch (ref.watch(backendProvider)) {
+    Backend.django => PasswordResetMethod.code,
+    Backend.firebase => PasswordResetMethod.link,
+  },
 );
